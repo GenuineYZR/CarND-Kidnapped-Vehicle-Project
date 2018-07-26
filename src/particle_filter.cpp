@@ -26,7 +26,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	// NOTE: Consult particle_filter.h for more information about this method (and others in this file).
 	
 	// Set the number of particles.
-	num_particles = 1;
+	num_particles = 10;
 
 	// Set a random engine to generate ramdom numbers.
 	default_random_engine gen;
@@ -64,13 +64,13 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	//  http://www.cplusplus.com/reference/random/default_random_engine/
 
 	default_random_engine e;
-
+	//cout << "velocity = " << velocity << ", " << "yaw_rate = " << yaw_rate << endl;
 	for (int i = 0; i < num_particles; i++)
 	{
 		double x = particles[i].x;
 		double y = particles[i].y;
 		double theta = particles[i].theta;
-
+		//cout << "before_pred = " << "(" << x << ", " << y << ")" << ", " << theta << endl;
 		if (yaw_rate != 0)
 		{
 			x = x + (velocity / yaw_rate) * (sin(theta + yaw_rate * delta_t) - sin(theta));
@@ -84,7 +84,7 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 			y = y + velocity * sin(theta) * delta_t;
 
 		}
-
+		//cout << "after_pred = " << "(" << x << ", " << y << ")" << ", " << theta << endl;
 		normal_distribution<double> dis_x{ x, std_pos[0] };
 		normal_distribution<double> dis_y{ y, std_pos[1] };
 		normal_distribution<double> dis_theta{ theta, std_pos[2] };
@@ -127,7 +127,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		double x_p = particles[i].x;
 		double y_p = particles[i].y;
 		double theta_p = particles[i].theta;
-		cout << "particle = (" << particles[i].x << ", " << particles[i].y << ")" << endl;// This line for debugging.
+		//cout << "particle = (" << particles[i].x << ", " << particles[i].y << ")" << endl;// This line for debugging.
 		
 		// Pick out those landmarks within sensor range for each of the particles.
 		vector<LandmarkObs> surroundinglandmarks;
@@ -158,7 +158,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			double y_c = observations[i].y;
 			
 			double x_m = x_p + x_c * cos(theta_p) - y_c * sin(theta_p);
-			double y_m = y_p + y_c * sin(theta_p) + y_c * cos(theta_p);
+			double y_m = y_p + x_c * sin(theta_p) + y_c * cos(theta_p);
 			
 			LandmarkObs trans_ob;
 			
@@ -201,14 +201,14 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 				}
 			}
 			// This line for debugging.
-			cout << "obs_original = (" << observations[i].x << ", " << observations[i].y << "), obs_trans = (" << x << ", " << y << "), ass_lm_id = " << id << ", " << " ass_lm = (" << x_lm << ", " << y_lm << ")" << endl;
+			//cout << "obs_original = (" << observations[i].x << ", " << observations[i].y << "), obs_trans = (" << x << ", " << y << "), ass_lm_id = " << id << ", " << " ass_lm = (" << x_lm << ", " << y_lm << ")" << endl;
 			
 			double exponent = 0.5 * (pow(x_diff / std_x, 2) + pow(y_diff / std_y, 2));
 			weight = weight * exp(-exponent) / (2 * M_PI * std_x * std_y);
 			
 		}		
 		particles[i].weight = weight; // Update the weight of each particle.
-		cout <<" particle_weight = " << particles[i].weight << endl;// This line for debugging.
+		//cout <<" particle_weight = " << particles[i].weight << endl;// This line for debugging.
 		weights[i] = weight; // Update the vector of weights.		
 	}
 }
